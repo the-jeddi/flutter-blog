@@ -1,17 +1,29 @@
 # flutter_blog
 
-A new Flutter project.
+A simple Blog application using Flutter
 
-## Getting Started
+## Tech stack used
+- Provider - State Management
+- go_router - Routing
+- Supabase - Authentication, Database, and Image Upload
 
-This project is a starting point for a Flutter application.
+## Features
+- Authentication
+    - Registration (Email & Password only, no confirm password)
+    - Login
+    - Logout
 
-A few resources to get you started if this is your first Flutter project:
+- Posts CRUD
+    - Public post listing with images(multiple images preview) and Pagination (visible even when logged out)
+    - Create post with images upload/delete(multiple images) 
+    - View post with images
+    - Update post with images add/delete(multiple images) 
+    - Delete post
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- Comments CRUD
+    - Add comments (CRUD) functionality with images(multiple images) upload
+    - On each Post view, user can comment (CRUD) with image add/delete
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Profile Page
+    - Profile photo CRUD
+    - Name update
