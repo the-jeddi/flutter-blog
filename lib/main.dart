@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/features/auth/screens/login_screen.dart';
+import 'package:flutter_blog/features/auth/screens/register_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -20,11 +22,9 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
       child: const BlogApp(),
-    )
+    ),
   );
 }
 
@@ -41,7 +41,7 @@ class _BlogAppState extends State<BlogApp> {
   @override
   void initState() {
     super.initState();
-    
+
     final authProvider = context.read<AuthProvider>();
 
     _router = GoRouter(
@@ -49,7 +49,9 @@ class _BlogAppState extends State<BlogApp> {
       refreshListenable: authProvider,
       redirect: (context, state) {
         final isLoggedIn = authProvider.isAuthenticated;
-        final isAuthRoute = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+        final isAuthRoute =
+            state.matchedLocation == '/login' ||
+            state.matchedLocation == '/register';
 
         // 1. Unauthenticated users trying to access protected routes
         if (!isLoggedIn && !isAuthRoute) {
@@ -68,17 +70,19 @@ class _BlogAppState extends State<BlogApp> {
       routes: [
         GoRoute(
           path: '/login',
-          builder:(context, state) => const Scaffold(
-            body: Center(child: Text('Login Page Placeholder')),
-          ),
+          builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/register',
+          builder: (context, state) => const RegisterScreen(),
         ),
         GoRoute(
           path: '/feed',
-          builder:(context, state) => const Scaffold(
+          builder: (context, state) => const Scaffold(
             body: Center(child: Text('Feed Page Placeholder')),
           ),
-        )
-      ]
+        ),
+      ],
     );
   }
 
