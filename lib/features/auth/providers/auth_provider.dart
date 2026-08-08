@@ -5,7 +5,7 @@ import 'package:flutter_blog/core/locator.dart';
 import 'package:flutter_blog/features/auth/repositories/auth_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class AuthProvider extends ChangeNotifier{
+class AuthProvider extends ChangeNotifier {
   final AuthRepository _authRepo = locator<AuthRepository>();
   StreamSubscription<AuthState>? _authStateSubscription;
 
@@ -25,9 +25,14 @@ class AuthProvider extends ChangeNotifier{
     });
   }
 
-  void _setLoading(bool value) {
-    _isLoading = value;
+  void _startLoading() {
+    _isLoading = true;
     _errorMessage = null;
+    notifyListeners();
+  }
+
+  void _stopLoading() {
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -37,7 +42,7 @@ class AuthProvider extends ChangeNotifier{
   }
 
   Future<void> login(String email, String password) async {
-    _setLoading(true);
+    _startLoading();
     try {
       await _authRepo.signIn(email, password);
     } on AuthException catch (e) {
@@ -45,12 +50,12 @@ class AuthProvider extends ChangeNotifier{
     } catch (e) {
       _setError('An unexpected error occurred during login.');
     } finally {
-      _setLoading(false);
+      _stopLoading();
     }
   }
 
   Future<void> register(String email, String password) async {
-    _setLoading(true);
+    _startLoading();
     try {
       await _authRepo.signUp(email, password);
     } on AuthException catch (e) {
@@ -58,12 +63,12 @@ class AuthProvider extends ChangeNotifier{
     } catch (e) {
       _setError('An unexpected error occurred during sign up.');
     } finally {
-      _setLoading(false);
+      _stopLoading();
     }
   }
 
   Future<void> logout() async {
-    _setLoading(true);
+    _startLoading();
     try {
       await _authRepo.signOut();
     } on AuthException catch (e) {
@@ -71,7 +76,7 @@ class AuthProvider extends ChangeNotifier{
     } catch (e) {
       _setError('An unexpected error occurred during logout.');
     } finally {
-      _setLoading(false);
+      _stopLoading();
     }
   }
 
