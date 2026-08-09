@@ -44,7 +44,7 @@ class ProfileRepository {
         .insert({
           'id': userId,
           'display_name': displayName,
-          if (avatarUrl != null) 'avatar_url': avatarUrl,
+          'avatar_url': ?avatarUrl,
         })
         .select()
         .single();

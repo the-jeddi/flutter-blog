@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/features/auth/screens/login_screen.dart';
 import 'package:flutter_blog/features/auth/screens/register_screen.dart';
+import 'package:flutter_blog/features/posts/providers/post_provider.dart';
+import 'package:flutter_blog/features/posts/screens/create_post_screen.dart';
 import 'package:flutter_blog/features/posts/screens/feed_screen.dart';
 import 'package:flutter_blog/features/profile/providers/profile_provider.dart';
 import 'package:flutter_blog/features/profile/screens/onboarding_screen.dart';
@@ -29,6 +31,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => PostProvider()),
       ],
       child: const BlogApp(),
     ),
@@ -88,6 +91,7 @@ class _BlogAppState extends State<BlogApp> {
         return null;
       },
       routes: [
+        GoRoute(path: '/', builder: (context, state) => const FeedScreen()),
         GoRoute(
           path: '/login',
           builder: (context, state) => const LoginScreen(),
@@ -104,6 +108,10 @@ class _BlogAppState extends State<BlogApp> {
         GoRoute(
           path: '/profile',
           builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: '/create-post',
+          builder: (context, state) => const CreatePostScreen(),
         ),
       ],
     );

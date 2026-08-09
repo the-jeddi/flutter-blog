@@ -1,3 +1,4 @@
+import 'package:flutter_blog/features/posts/repositories/post_repository.dart';
 import 'package:flutter_blog/features/profile/repositories/profile_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -10,12 +11,13 @@ void configureDependencies() {
   locator.registerSingleton<SupabaseClient>(Supabase.instance.client);
 
   // Register Lazy Singletons
-  // Register AuthRepository
   locator.registerLazySingleton<AuthRepository>(
     () => AuthRepository(client: locator<SupabaseClient>()),
   );
-  // Register ProfileRepository
   locator.registerLazySingleton<ProfileRepository>(
     () => ProfileRepository(client: locator<SupabaseClient>()),
+  );
+  locator.registerLazySingleton<PostRepository>(
+    () => PostRepository(client: locator<SupabaseClient>()),
   );
 }
