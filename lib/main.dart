@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/features/auth/screens/login_screen.dart';
 import 'package:flutter_blog/features/auth/screens/register_screen.dart';
+import 'package:flutter_blog/features/posts/screens/feed_screen.dart';
 import 'package:flutter_blog/features/profile/providers/profile_provider.dart';
 import 'package:flutter_blog/features/profile/screens/onboarding_screen.dart';
+import 'package:flutter_blog/features/profile/screens/profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -98,11 +100,10 @@ class _BlogAppState extends State<BlogApp> {
           path: '/onboarding',
           builder: (context, state) => const OnboardingScreen(),
         ),
+        GoRoute(path: '/feed', builder: (context, state) => const FeedScreen()),
         GoRoute(
-          path: '/feed',
-          builder: (context, state) => const Scaffold(
-            body: Center(child: Text('Feed Page Placeholder')),
-          ),
+          path: '/profile',
+          builder: (context, state) => const ProfileScreen(),
         ),
       ],
     );
