@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/features/auth/screens/login_screen.dart';
 import 'package:flutter_blog/features/auth/screens/register_screen.dart';
+import 'package:flutter_blog/features/profile/providers/profile_provider.dart';
+import 'package:flutter_blog/features/profile/screens/onboarding_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +24,10 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+      ],
       child: const BlogApp(),
     ),
   );
@@ -43,24 +48,37 @@ class _BlogAppState extends State<BlogApp> {
     super.initState();
 
     final authProvider = context.read<AuthProvider>();
+    final profileProvider = context.read<ProfileProvider>();
 
     _router = GoRouter(
       initialLocation: '/login',
-      refreshListenable: authProvider,
+      refreshListenable: Listenable.merge([authProvider, profileProvider]),
       redirect: (context, state) {
         final isLoggedIn = authProvider.isAuthenticated;
-        final isAuthRoute =
-            state.matchedLocation == '/login' ||
-            state.matchedLocation == '/register';
+        final isProfileSetup = profileProvider.isProfileSetup;
+        final isProfileLoading = profileProvider.isLoading;
+
+        final location = state.matchedLocation;
+        final isAuthRoute = location == '/login' || location == '/register';
+        final isOnboardingRoute = location == '/onboarding';
 
         // 1. Unauthenticated users trying to access protected routes
-        if (!isLoggedIn && !isAuthRoute) {
-          if (state.matchedLocation == '/feed') return null;
-          return '/login';
+        if (!isLoggedIn) {
+          return isAuthRoute ? null : '/login';
         }
 
-        // 2. Authenticated users trying to access login/register
-        if (isLoggedIn && isAuthRoute) {
+        // 2. Prevent premature redirects while fetching the profile
+        if (isProfileLoading) {
+          return null;
+        }
+
+        // 3. Authenticated users but no profile setup
+        if (!isProfileSetup) {
+          return isOnboardingRoute ? null : '/onboarding';
+        }
+
+        // 4. Keep Authenticated and Profile Setup out of auth/onboarding
+        if (isAuthRoute || isOnboardingRoute) {
           return '/feed';
         }
 
@@ -75,6 +93,10 @@ class _BlogAppState extends State<BlogApp> {
         GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: '/onboarding',
+          builder: (context, state) => const OnboardingScreen(),
         ),
         GoRoute(
           path: '/feed',
