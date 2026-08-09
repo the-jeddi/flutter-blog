@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/features/auth/providers/auth_provider.dart';
 import 'package:flutter_blog/features/posts/models/post_model.dart';
+import 'package:flutter_blog/features/posts/providers/post_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class PostCard extends StatelessWidget {
   final Post post;
@@ -30,6 +34,10 @@ class PostCard extends StatelessWidget {
       post.createdAt.toLocal(),
     );
 
+    // Check ownership
+    final currentUserId = context.read<AuthProvider>().currentUser?.id;
+    final isOwner = currentUserId == post.authorId;
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: CircleAvatar(
@@ -47,7 +55,65 @@ class PostCard extends StatelessWidget {
         formattedDate,
         style: TextStyle(color: Colors.grey[600], fontSize: 12),
       ),
+
+      trailing: isOwner
+          ? PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'delete') {
+                  _showDeleteDialog(context);
+                } else if (value == 'edit') {
+                  context.push('/create-post', extra: post);
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            )
+          : null,
     );
+  }
+
+  Future<void> _showDeleteDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Post'),
+        content: const Text('This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    if (!context.mounted) return;
+
+    // Trigger delete
+    final provider = context.read<PostProvider>();
+    final success = await provider.deletePost(post.id, post.imageUrls);
+
+    if (context.mounted && !success && provider.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      provider.clearError();
+    }
   }
 
   Widget _buildTextContent(BuildContext context) {

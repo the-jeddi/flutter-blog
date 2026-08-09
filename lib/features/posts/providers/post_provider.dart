@@ -105,6 +105,62 @@ class PostProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> deletePost(String postId, List<String> imageUrls) async {
+    try {
+      await _postRepo.deletePost(postId, imageUrls);
+
+      _posts.removeWhere((post) => post.id == postId);
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to delete post';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updatePost({
+    required String postId,
+    required String title,
+    required String content,
+    required String authorId,
+    required List<String> keptImageUrls,
+    required List<String> imagesToDelete,
+    required List<Uint8List> newImageBytesList,
+    required List<String> newFileNames,
+  }) async {
+    _isLoadingInitial = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedPost = await _postRepo.updatePost(
+        postId: postId,
+        title: title,
+        content: content,
+        authorId: authorId,
+        keptImageUrls: keptImageUrls,
+        imagesToDelete: imagesToDelete,
+        newImageBytesList: newImageBytesList,
+        newFileNames: newFileNames,
+      );
+
+      final index = _posts.indexWhere((p) => p.id == postId);
+      if (index != -1) {
+        _posts[index] = updatedPost;
+      }
+
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to update post. Please try again.';
+      return false;
+    } finally {
+      _isLoadingInitial = false;
+      notifyListeners();
+    }
+  }
+
   void clearError() {
     if (_errorMessage != null) {
       _errorMessage = null;

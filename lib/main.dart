@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/features/auth/screens/login_screen.dart';
 import 'package:flutter_blog/features/auth/screens/register_screen.dart';
+import 'package:flutter_blog/features/posts/models/post_model.dart';
 import 'package:flutter_blog/features/posts/providers/post_provider.dart';
 import 'package:flutter_blog/features/posts/screens/create_post_screen.dart';
 import 'package:flutter_blog/features/posts/screens/feed_screen.dart';
@@ -111,7 +112,10 @@ class _BlogAppState extends State<BlogApp> {
         ),
         GoRoute(
           path: '/create-post',
-          builder: (context, state) => const CreatePostScreen(),
+          builder: (context, state) {
+            final post = state.extra as Post?;
+            return CreatePostScreen(existingPost: post);
+          },
         ),
       ],
     );

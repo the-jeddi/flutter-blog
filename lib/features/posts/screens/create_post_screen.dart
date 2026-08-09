@@ -2,13 +2,15 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/features/auth/providers/auth_provider.dart';
+import 'package:flutter_blog/features/posts/models/post_model.dart';
 import 'package:flutter_blog/features/posts/providers/post_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class CreatePostScreen extends StatefulWidget {
-  const CreatePostScreen({super.key});
+  final Post? existingPost;
+  const CreatePostScreen({super.key, this.existingPost});
 
   @override
   State<CreatePostScreen> createState() => _CreatePostScreenState();
@@ -16,11 +18,31 @@ class CreatePostScreen extends StatefulWidget {
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _contentController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _contentController;
 
-  final List<Uint8List> _imageBytesList = [];
-  final List<String> _fileNames = [];
+  // Existing images
+  late List<String> _keptImageUrls;
+  final List<String> _deletedImageUrls = [];
+
+  // New images
+  final List<Uint8List> _newImageBytesList = [];
+  final List<String> _newFileNames = [];
+
+  bool get isEditing => widget.existingPost != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(
+      text: widget.existingPost?.title ?? '',
+    );
+    _contentController = TextEditingController(
+      text: widget.existingPost?.content ?? '',
+    );
+
+    _keptImageUrls = List<String>.from(widget.existingPost?.imageUrls ?? []);
+  }
 
   @override
   void dispose() {
@@ -37,17 +59,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       for (final xFile in xFiles) {
         final bytes = await xFile.readAsBytes();
         setState(() {
-          _imageBytesList.add(bytes);
-          _fileNames.add(xFile.name);
+          _newImageBytesList.add(bytes);
+          _newFileNames.add(xFile.name);
         });
       }
     }
   }
 
-  void _removeImage(int index) {
+  void _removeExistingImage(int index) {
     setState(() {
-      _imageBytesList.removeAt(index);
-      _fileNames.removeAt(index);
+      final removedUrl = _keptImageUrls.removeAt(index);
+      _deletedImageUrls.add(removedUrl);
+    });
+  }
+
+  void _removeNewImage(int index) {
+    setState(() {
+      _newImageBytesList.removeAt(index);
+      _newFileNames.removeAt(index);
     });
   }
 
@@ -59,17 +88,33 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       final userId = context.read<AuthProvider>().currentUser?.id;
       if (userId == null) return;
 
-      await provider.createPost(
-        title: _titleController.text.trim(),
-        content: _contentController.text.trim(),
-        imageBytesList: _imageBytesList,
-        fileNames: _fileNames,
-        authorId: userId,
-      );
+      bool success = false;
+
+      if (isEditing) {
+        success = await provider.updatePost(
+          postId: widget.existingPost!.id,
+          title: _titleController.text.trim(),
+          content: _contentController.text.trim(),
+          authorId: userId,
+          keptImageUrls: _keptImageUrls,
+          imagesToDelete: _deletedImageUrls,
+          newImageBytesList: _newImageBytesList,
+          newFileNames: _newFileNames,
+        );
+      } else {
+        await provider.createPost(
+          title: _titleController.text.trim(),
+          content: _contentController.text.trim(),
+          imageBytesList: _newImageBytesList,
+          fileNames: _newFileNames,
+          authorId: userId,
+        );
+        success = provider.errorMessage == null;
+      }
 
       if (!mounted) return;
 
-      if (provider.errorMessage != null) {
+      if (!success && provider.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(provider.errorMessage!),
@@ -86,7 +131,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Post')),
+      appBar: AppBar(title: Text(isEditing ? 'Edit Post' : 'Create Post')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -128,7 +173,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               // Image Picker
               OutlinedButton.icon(
                 onPressed: _pickImages,
-                icon: const Icon(Icons.image),
+                icon: const Icon(Icons.add_photo_alternate),
                 label: const Text('Add Images'),
               ),
 
@@ -151,7 +196,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Post'),
+                        : Text(isEditing ? 'Update Post' : 'Post'),
                   );
                 },
               ),
@@ -163,32 +208,49 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Widget _buildImagePreview() {
-    if (_imageBytesList.isEmpty) return const SizedBox.shrink();
+    final totalImages = _keptImageUrls.length + _newImageBytesList.length;
+    if (totalImages == 0) return const SizedBox.shrink();
 
     return SizedBox(
       height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _imageBytesList.length,
+        itemCount: totalImages,
         itemBuilder: (context, index) {
+          // Check if index is existing
+          final isExistingImage = index < _keptImageUrls.length;
+
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: Stack(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
-                  child: Image.memory(
-                    _imageBytesList[index],
-                    height: 100,
-                    width: 100,
-                    fit: BoxFit.cover,
-                  ),
+                  child: isExistingImage
+                      ? Image.network(
+                          _keptImageUrls[index],
+                          height: 100,
+                          width: 100,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.memory(
+                          _newImageBytesList[index - _keptImageUrls.length],
+                          height: 100,
+                          width: 100,
+                          fit: BoxFit.cover,
+                        ),
                 ),
                 Positioned(
                   top: 4,
                   right: 4,
                   child: GestureDetector(
-                    onTap: () => _removeImage(index),
+                    onTap: () {
+                      if (isExistingImage) {
+                        _removeExistingImage(index);
+                      } else {
+                        _removeNewImage(index - _keptImageUrls.length);
+                      }
+                    },
                     child: const CircleAvatar(
                       radius: 12,
                       backgroundColor: Colors.black54,
