@@ -1,3 +1,4 @@
+import 'package:flutter_blog/features/comments/repositories/comment_repository.dart';
 import 'package:flutter_blog/features/posts/repositories/post_repository.dart';
 import 'package:flutter_blog/features/profile/repositories/profile_repository.dart';
 import 'package:get_it/get_it.dart';
@@ -19,5 +20,8 @@ void configureDependencies() {
   );
   locator.registerLazySingleton<PostRepository>(
     () => PostRepository(client: locator<SupabaseClient>()),
+  );
+  locator.registerLazySingleton<CommentRepository>(
+    () => CommentRepository(client: locator<SupabaseClient>()),
   );
 }

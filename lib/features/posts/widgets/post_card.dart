@@ -8,21 +8,27 @@ import 'package:provider/provider.dart';
 
 class PostCard extends StatelessWidget {
   final Post post;
+  final bool isDetailView;
 
-  const PostCard({super.key, required this.post});
+  const PostCard({super.key, required this.post, this.isDetailView = false});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(context),
-          _buildTextContent(context),
-          _buildImages(),
-        ],
+    return GestureDetector(
+      onTap: isDetailView
+          ? null
+          : () => context.push('/post/{post.id}', extra: post),
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(context),
+            _buildTextContent(context),
+            _buildImages(),
+          ],
+        ),
       ),
     );
   }
@@ -30,9 +36,15 @@ class PostCard extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     final hasAvatar =
         post.author?.avatarUrl != null && post.author!.avatarUrl!.isNotEmpty;
+
+    // Check if post is edited
+    final isEdited =
+        post.updatedAt != null &&
+        post.updatedAt!.difference(post.createdAt).inSeconds > 0;
     final formattedDate = DateFormat.yMMMMd().add_jm().format(
       post.createdAt.toLocal(),
     );
+    final displayDate = isEdited ? '$formattedDate (edited)' : formattedDate;
 
     // Check ownership
     final currentUserId = context.read<AuthProvider>().currentUser?.id;
@@ -52,7 +64,7 @@ class PostCard extends StatelessWidget {
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
-        formattedDate,
+        displayDate,
         style: TextStyle(color: Colors.grey[600], fontSize: 12),
       ),
 

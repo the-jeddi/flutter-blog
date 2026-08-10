@@ -87,10 +87,7 @@ class ProfileRepository {
     // Update database row
     final data = await _client
         .from('profiles')
-        .update({
-          'display_name': displayName,
-          if (avatarUrl != null) 'avatar_url': avatarUrl,
-        })
+        .update({'display_name': displayName, 'avatar_url': ?avatarUrl})
         .eq('id', userId)
         .select()
         .single();

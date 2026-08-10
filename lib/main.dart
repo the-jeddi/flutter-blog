@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/features/auth/screens/login_screen.dart';
 import 'package:flutter_blog/features/auth/screens/register_screen.dart';
+import 'package:flutter_blog/features/comments/providers/comment_provider.dart';
 import 'package:flutter_blog/features/posts/models/post_model.dart';
 import 'package:flutter_blog/features/posts/providers/post_provider.dart';
 import 'package:flutter_blog/features/posts/screens/create_post_screen.dart';
 import 'package:flutter_blog/features/posts/screens/feed_screen.dart';
+import 'package:flutter_blog/features/posts/screens/post_detail_screen.dart';
 import 'package:flutter_blog/features/profile/providers/profile_provider.dart';
 import 'package:flutter_blog/features/profile/screens/onboarding_screen.dart';
 import 'package:flutter_blog/features/profile/screens/profile_screen.dart';
@@ -33,6 +35,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => PostProvider()),
+        ChangeNotifierProvider(create: (_) => CommentProvider()),
       ],
       child: const BlogApp(),
     ),
@@ -115,6 +118,13 @@ class _BlogAppState extends State<BlogApp> {
           builder: (context, state) {
             final post = state.extra as Post?;
             return CreatePostScreen(existingPost: post);
+          },
+        ),
+        GoRoute(
+          path: '/post/:id',
+          builder: (context, state) {
+            final post = state.extra as Post;
+            return PostDetailScreen(post: post);
           },
         ),
       ],
