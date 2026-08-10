@@ -11,6 +11,9 @@ class PostProvider extends ChangeNotifier {
   bool _isLoadingMore = false;
   bool _hasReachedMax = false;
 
+  List<Post> _userPosts = [];
+  bool _isLoadingUserPosts = false;
+
   int _currentPage = 0;
   final int _limit = 10;
 
@@ -21,6 +24,9 @@ class PostProvider extends ChangeNotifier {
   bool get isLoadingMore => _isLoadingMore;
   bool get hasReachedMax => _hasReachedMax;
   String? get errorMessage => _errorMessage;
+
+  List<Post> get userPosts => _userPosts;
+  bool get isLoadingUserPosts => _isLoadingUserPosts;
 
   Future<void> loadInitialPosts() async {
     _isLoadingInitial = true;
@@ -72,6 +78,26 @@ class PostProvider extends ChangeNotifier {
       _errorMessage = 'Failed to load more posts';
     } finally {
       _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadUserPosts(String userId, {bool ascending = false}) async {
+    _isLoadingUserPosts = true;
+    notifyListeners();
+
+    try {
+      // Fetch up to 50 posts for the profile view
+      _userPosts = await _postRepo.fetchPosts(
+        page: 0,
+        limit: 50,
+        authorId: userId,
+        ascending: ascending,
+      );
+    } catch (e) {
+      _errorMessage = 'Failed to load user posts.';
+    } finally {
+      _isLoadingUserPosts = false;
       notifyListeners();
     }
   }

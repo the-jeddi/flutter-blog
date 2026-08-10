@@ -102,6 +102,31 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> updateProfile({
+    required String userId,
+    required String displayName,
+    Uint8List? newImageBytes,
+    String? newFileName,
+    String? oldAvatarUrl,
+  }) async {
+    _startLoading();
+    try {
+      _currentProfile = await _profileRepo.updateProfile(
+        userId: userId,
+        displayName: displayName,
+        newImageBytes: newImageBytes,
+        newFileName: newFileName,
+        oldAvatarUrl: oldAvatarUrl,
+      );
+      return true;
+    } catch (e) {
+      _setError('Failed to update profile.');
+      return false;
+    } finally {
+      _stopLoading();
+    }
+  }
+
   void _clearProfile() {
     _currentProfile = null;
     _errorMessage = null;

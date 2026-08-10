@@ -7,15 +7,25 @@ class PostRepository {
   final SupabaseClient _client;
   PostRepository({required this._client});
 
-  Future<List<Post>> fetchPosts({required int page, required int limit}) async {
+  Future<List<Post>> fetchPosts({
+    required int page,
+    required int limit,
+    String? authorId,
+    bool ascending = false,
+  }) async {
     final startIndex = page * limit;
     final endIndex = startIndex + limit - 1;
 
+    var query = _client.from('posts').select('*, profiles(*)');
+
+    // Filter by author if an ID is provided
+    if (authorId != null) {
+      query = query.eq('author_id', authorId);
+    }
+
     // Fetch posts
-    final rawList = await _client
-        .from('posts')
-        .select('*, profiles(*)')
-        .order('created_at', ascending: false)
+    final rawList = await query
+        .order('created_at', ascending: ascending)
         .range(startIndex, endIndex);
 
     return rawList.map((json) => Post.fromJson(json)).toList();
