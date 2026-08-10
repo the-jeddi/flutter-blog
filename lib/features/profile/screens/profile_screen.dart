@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/core/widgets/responsive_app_bar.dart';
+import 'package:flutter_blog/core/widgets/responsive_constrained_box.dart';
 import 'package:flutter_blog/features/auth/providers/auth_provider.dart';
 import 'package:flutter_blog/features/posts/providers/post_provider.dart';
 import 'package:flutter_blog/features/posts/widgets/post_card.dart';
@@ -65,58 +67,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text('Edit Profile'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        final picker = ImagePicker();
-                        final xFile = await picker.pickImage(
-                          source: ImageSource.gallery,
-                        );
-                        if (xFile != null) {
-                          final bytes = await xFile.readAsBytes();
-                          setDialogState(() {
-                            newImageBytes = bytes;
-                            newFileName = xFile.name;
-                          });
-                        }
-                      },
-                      child: CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.grey[300],
-                        backgroundImage: newImageBytes != null
-                            ? MemoryImage(newImageBytes!)
-                            : (currentProfile.avatarUrl != null
-                                  ? NetworkImage(currentProfile.avatarUrl!)
-                                        as ImageProvider
-                                  : null),
-                        child:
-                            newImageBytes == null &&
-                                currentProfile.avatarUrl == null
-                            ? const Icon(
-                                Icons.person,
-                                size: 40,
-                                color: Colors.grey,
-                              )
-                            : null,
+              content: SizedBox(
+                width: 450,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () async {
+                          final picker = ImagePicker();
+                          final xFile = await picker.pickImage(
+                            source: ImageSource.gallery,
+                          );
+                          if (xFile != null) {
+                            final bytes = await xFile.readAsBytes();
+                            setDialogState(() {
+                              newImageBytes = bytes;
+                              newFileName = xFile.name;
+                            });
+                          }
+                        },
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          backgroundImage: newImageBytes != null
+                              ? MemoryImage(newImageBytes!)
+                              : (currentProfile.avatarUrl != null
+                                    ? NetworkImage(currentProfile.avatarUrl!)
+                                          as ImageProvider
+                                    : null),
+                          child:
+                              newImageBytes == null &&
+                                  currentProfile.avatarUrl == null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                )
+                              : null,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Tap to change avatar',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Display Name',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tap to change avatar',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Display Name',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -202,7 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: ResponsiveAppBar(
         title: const Text('Profile'),
         actions: [
           IconButton(
@@ -217,98 +229,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          // Static Profile Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.grey[300],
-                    backgroundImage: hasAvatar
-                        ? NetworkImage(profile.avatarUrl!)
-                        : null,
-                    child: !hasAvatar
-                        ? const Icon(Icons.person, size: 50, color: Colors.grey)
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    profile.displayName,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+      body: ResponsiveConstrainedBox(
+        child: CustomScrollView(
+          slivers: [
+            // Static Profile Header
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      backgroundImage: hasAvatar
+                          ? NetworkImage(profile.avatarUrl!)
+                          : null,
+                      child: !hasAvatar
+                          ? Icon(
+                              Icons.person,
+                              size: 50,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            )
+                          : null,
                     ),
-                  ),
-
-                  // Show progress bar during profile update
-                  if (profileProvider.isLoading)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 16.0),
-                      child: LinearProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Text(
+                      profile.displayName,
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                  const SizedBox(height: 24),
-                  const Divider(),
-                ],
-              ),
-            ),
-          ),
 
-          // Sorting Controls Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'My Posts',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  TextButton.icon(
-                    onPressed: _toggleSort,
-                    icon: Icon(
-                      _isAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                      size: 16,
-                    ),
-                    label: Text(_isAscending ? 'Oldest First' : 'Newest First'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // The List of User Posts (Will show a spinner while re-fetching)
-          if (postProvider.isLoadingUserPosts)
-            const SliverToBoxAdapter(
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
+                    // Show progress bar during profile update
+                    if (profileProvider.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 16.0),
+                        child: LinearProgressIndicator(),
+                      ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-            )
-          else if (postProvider.userPosts.isEmpty)
-            const SliverToBoxAdapter(
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: Text('You haven\'t posted anything yet.'),
+            ),
+
+            // Sorting Controls Header
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'My Posts',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _toggleSort,
+                      icon: Icon(
+                        _isAscending
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
+                        size: 16,
+                      ),
+                      label: Text(
+                        _isAscending ? 'Oldest First' : 'Newest First',
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            )
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                return PostCard(post: postProvider.userPosts[index]);
-              }, childCount: postProvider.userPosts.length),
             ),
-        ],
+
+            // The List of User Posts (Will show a spinner while re-fetching)
+            if (postProvider.isLoadingUserPosts)
+              const SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              )
+            else if (postProvider.userPosts.isEmpty)
+              const SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: Text('You haven\'t posted anything yet.'),
+                  ),
+                ),
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return PostCard(post: postProvider.userPosts[index]);
+                }, childCount: postProvider.userPosts.length),
+              ),
+          ],
+        ),
       ),
     );
   }

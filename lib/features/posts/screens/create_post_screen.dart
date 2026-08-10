@@ -1,6 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/core/theme/app_theme.dart';
+import 'package:flutter_blog/core/widgets/responsive_app_bar.dart';
+import 'package:flutter_blog/core/widgets/responsive_constrained_box.dart';
 import 'package:flutter_blog/features/auth/providers/auth_provider.dart';
 import 'package:flutter_blog/features/posts/models/post_model.dart';
 import 'package:flutter_blog/features/posts/providers/post_provider.dart';
@@ -131,76 +134,76 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(isEditing ? 'Edit Post' : 'Create Post')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
+      appBar: ResponsiveAppBar(
+        title: Text(isEditing ? 'Edit Post' : 'Create Post'),
+      ),
+      body: ResponsiveConstrainedBox(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Title'),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a title';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _contentController,
-                maxLines: 6,
-                decoration: const InputDecoration(
-                  labelText: 'What\'s on your mind?',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _contentController,
+                  maxLines: 6,
+                  decoration: const InputDecoration(
+                    labelText: 'What\'s on your mind?',
+                    alignLabelWithHint: true,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter some content';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter some content';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Image Picker
-              OutlinedButton.icon(
-                onPressed: _pickImages,
-                icon: const Icon(Icons.add_photo_alternate),
-                label: const Text('Add Images'),
-              ),
+                // Image Picker
+                OutlinedButton.icon(
+                  onPressed: _pickImages,
+                  icon: const Icon(Icons.add_photo_alternate),
+                  label: const Text('Add Images'),
+                ),
 
-              const SizedBox(height: 16),
-              _buildImagePreview(),
-              const SizedBox(height: 32),
+                const SizedBox(height: 16),
+                _buildImagePreview(),
+                const SizedBox(height: 32),
 
-              Consumer<PostProvider>(
-                builder: (context, provider, child) {
-                  return ElevatedButton(
-                    onPressed: provider.isLoadingInitial
-                        ? null
-                        : () => _submitPost(provider),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: provider.isLoadingInitial
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(isEditing ? 'Update Post' : 'Post'),
-                  );
-                },
-              ),
-            ],
+                Consumer<PostProvider>(
+                  builder: (context, provider, child) {
+                    return ElevatedButton(
+                      onPressed: provider.isLoadingInitial
+                          ? null
+                          : () => _submitPost(provider),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: provider.isLoadingInitial
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(isEditing ? 'Update Post' : 'Post'),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -225,7 +228,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             child: Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: AppTheme.defaultBorderRadius,
                   child: isExistingImage
                       ? Image.network(
                           _keptImageUrls[index],
@@ -251,10 +254,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         _removeNewImage(index - _keptImageUrls.length);
                       }
                     },
-                    child: const CircleAvatar(
+                    child: CircleAvatar(
                       radius: 12,
-                      backgroundColor: Colors.black54,
-                      child: Icon(Icons.close, size: 16, color: Colors.white),
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.inverseSurface.withValues(alpha: 0.7),
+                      child: Icon(
+                        Icons.close,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.inverseSurface,
+                      ),
                     ),
                   ),
                 ),

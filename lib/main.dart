@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/core/providers/theme_provider.dart';
+import 'package:flutter_blog/core/theme/app_theme.dart';
+import 'package:flutter_blog/core/widgets/responsive_shell.dart';
 import 'package:flutter_blog/features/auth/screens/login_screen.dart';
 import 'package:flutter_blog/features/auth/screens/register_screen.dart';
 import 'package:flutter_blog/features/comments/providers/comment_provider.dart';
@@ -36,6 +39,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => PostProvider()),
         ChangeNotifierProvider(create: (_) => CommentProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const BlogApp(),
     ),
@@ -95,7 +99,6 @@ class _BlogAppState extends State<BlogApp> {
         return null;
       },
       routes: [
-        GoRoute(path: '/', builder: (context, state) => const FeedScreen()),
         GoRoute(
           path: '/login',
           builder: (context, state) => const LoginScreen(),
@@ -107,11 +110,6 @@ class _BlogAppState extends State<BlogApp> {
         GoRoute(
           path: '/onboarding',
           builder: (context, state) => const OnboardingScreen(),
-        ),
-        GoRoute(path: '/feed', builder: (context, state) => const FeedScreen()),
-        GoRoute(
-          path: '/profile',
-          builder: (context, state) => const ProfileScreen(),
         ),
         GoRoute(
           path: '/create-post',
@@ -127,19 +125,44 @@ class _BlogAppState extends State<BlogApp> {
             return PostDetailScreen(post: post);
           },
         ),
+
+        // Inside Shell
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) {
+            return ResponsiveShell(navigationShell: navigationShell);
+          },
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/feed',
+                  builder: (context, state) => const FeedScreen(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: '/profile',
+                  builder: (context, state) => const ProfileScreen(),
+                ),
+              ],
+            ),
+          ],
+        ),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // 3. Material App with go_router integration
+    final themeProvider = context.watch<ThemeProvider>();
+
     return MaterialApp.router(
       title: 'The Daily Bits',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeProvider.themeMode,
       routerConfig: _router,
     );
   }

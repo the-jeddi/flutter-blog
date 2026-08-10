@@ -1,6 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/core/theme/app_theme.dart';
+import 'package:flutter_blog/core/widgets/responsive_app_bar.dart';
+import 'package:flutter_blog/core/widgets/responsive_constrained_box.dart';
 import 'package:flutter_blog/features/auth/providers/auth_provider.dart';
 import 'package:flutter_blog/features/comments/models/comment_model.dart';
 import 'package:flutter_blog/features/comments/providers/comment_provider.dart';
@@ -107,121 +110,131 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text('Edit Comment'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextField(
-                      controller: contentController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
+              content: SizedBox(
+                width: 450,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextField(
+                        controller: contentController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          hintText: 'Update your comment...',
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        final picker = ImagePicker();
-                        final xFiles = await picker.pickMultiImage();
-                        if (xFiles.isNotEmpty) {
-                          for (final xFile in xFiles) {
-                            final bytes = await xFile.readAsBytes();
-                            setDialogState(() {
-                              newImageBytes.add(bytes);
-                              newFileNames.add(xFile.name);
-                            });
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final picker = ImagePicker();
+                          final xFiles = await picker.pickMultiImage();
+                          if (xFiles.isNotEmpty) {
+                            for (final xFile in xFiles) {
+                              final bytes = await xFile.readAsBytes();
+                              setDialogState(() {
+                                newImageBytes.add(bytes);
+                                newFileNames.add(xFile.name);
+                              });
+                            }
                           }
-                        }
-                      },
-                      icon: const Icon(Icons.add_photo_alternate),
-                      label: const Text('Add Images'),
-                    ),
-                    const SizedBox(height: 16),
+                        },
+                        icon: const Icon(Icons.add_photo_alternate),
+                        label: const Text('Add Images'),
+                      ),
+                      const SizedBox(height: 16),
 
-                    // Image Preview in Dialog
-                    if (keptImageUrls.isNotEmpty || newImageBytes.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: SizedBox(
-                          height: 80,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: List.generate(
-                                keptImageUrls.length + newImageBytes.length,
-                                (index) {
-                                  final isExisting =
-                                      index < keptImageUrls.length;
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8.0,
+                      // Image Preview in Dialog
+                      if (keptImageUrls.isNotEmpty || newImageBytes.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: SizedBox(
+                            height: 80,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: List.generate(
+                                  keptImageUrls.length + newImageBytes.length,
+                                  (index) {
+                                    final isExisting =
+                                        index < keptImageUrls.length;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 8.0,
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                AppTheme.defaultBorderRadius,
+                                            child: isExisting
+                                                ? Image.network(
+                                                    keptImageUrls[index],
+                                                    height: 80,
+                                                    width: 80,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                : Image.memory(
+                                                    newImageBytes[index -
+                                                        keptImageUrls.length],
+                                                    height: 80,
+                                                    width: 80,
+                                                    fit: BoxFit.cover,
+                                                  ),
                                           ),
-                                          child: isExisting
-                                              ? Image.network(
-                                                  keptImageUrls[index],
-                                                  height: 80,
-                                                  width: 80,
-                                                  fit: BoxFit.cover,
-                                                )
-                                              : Image.memory(
-                                                  newImageBytes[index -
-                                                      keptImageUrls.length],
-                                                  height: 80,
-                                                  width: 80,
-                                                  fit: BoxFit.cover,
+                                          Positioned(
+                                            top: 4,
+                                            right: 4,
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                setDialogState(() {
+                                                  if (isExisting) {
+                                                    deletedImageUrls.add(
+                                                      keptImageUrls.removeAt(
+                                                        index,
+                                                      ),
+                                                    );
+                                                  } else {
+                                                    final removeIdx =
+                                                        index -
+                                                        keptImageUrls.length;
+                                                    newImageBytes.removeAt(
+                                                      removeIdx,
+                                                    );
+                                                    newFileNames.removeAt(
+                                                      removeIdx,
+                                                    );
+                                                  }
+                                                });
+                                              },
+                                              child: CircleAvatar(
+                                                radius: 10,
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .inverseSurface
+                                                        .withValues(alpha: 0.7),
+                                                child: Icon(
+                                                  Icons.close,
+                                                  size: 12,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onInverseSurface,
                                                 ),
-                                        ),
-                                        Positioned(
-                                          top: 4,
-                                          right: 4,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setDialogState(() {
-                                                if (isExisting) {
-                                                  deletedImageUrls.add(
-                                                    keptImageUrls.removeAt(
-                                                      index,
-                                                    ),
-                                                  );
-                                                } else {
-                                                  final removeIdx =
-                                                      index -
-                                                      keptImageUrls.length;
-                                                  newImageBytes.removeAt(
-                                                    removeIdx,
-                                                  );
-                                                  newFileNames.removeAt(
-                                                    removeIdx,
-                                                  );
-                                                }
-                                              });
-                                            },
-                                            child: const CircleAvatar(
-                                              radius: 10,
-                                              backgroundColor: Colors.black54,
-                                              child: Icon(
-                                                Icons.close,
-                                                size: 12,
-                                                color: Colors.white,
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -357,147 +370,155 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Post')),
-      body: Column(
-        children: [
-          // Scrollable Post and Comments Area
-          Expanded(
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: PostCard(post: currentPost, isDetailView: true),
-                ),
-                const SliverToBoxAdapter(child: Divider()),
-
-                if (commentProvider.isLoading)
-                  const SliverToBoxAdapter(
-                    child: Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(24.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                  )
-                else if (commentProvider.comments.isEmpty)
-                  const SliverToBoxAdapter(
-                    child: Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: Text('No comments yet. Be the first!'),
-                      ),
-                    ),
-                  )
-                else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => _buildCommentItem(
-                        commentProvider.comments[index],
-                        currentUserId,
-                        commentProvider,
-                      ),
-                      childCount: commentProvider.comments.length,
-                    ),
+      appBar: ResponsiveAppBar(title: const Text('Post')),
+      body: ResponsiveConstrainedBox(
+        child: Column(
+          children: [
+            // Scrollable Post and Comments Area
+            Expanded(
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: PostCard(post: currentPost, isDetailView: true),
                   ),
-              ],
-            ),
-          ),
+                  const SliverToBoxAdapter(child: Divider()),
 
-          // Sticky Bottom Input Area
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  offset: const Offset(0, -2),
-                  blurRadius: 4,
-                ),
-              ],
+                  if (commentProvider.isLoading)
+                    const SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    )
+                  else if (commentProvider.comments.isEmpty)
+                    const SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Text('No comments yet. Be the first!'),
+                        ),
+                      ),
+                    )
+                  else
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _buildCommentItem(
+                          commentProvider.comments[index],
+                          currentUserId,
+                          commentProvider,
+                        ),
+                        childCount: commentProvider.comments.length,
+                      ),
+                    ),
+                ],
+              ),
             ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_newImageBytesList.isNotEmpty)
-                      SizedBox(
-                        height: 80,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _newImageBytesList.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                right: 8.0,
-                                bottom: 8.0,
-                              ),
-                              child: Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.memory(
-                                      _newImageBytesList[index],
-                                      height: 72,
-                                      width: 72,
-                                      fit: BoxFit.cover,
+
+            // Sticky Bottom Input Area
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    offset: const Offset(0, -2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_newImageBytesList.isNotEmpty)
+                        SizedBox(
+                          height: 80,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _newImageBytesList.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  right: 8.0,
+                                  bottom: 8.0,
+                                ),
+                                child: Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius:
+                                          AppTheme.defaultBorderRadius,
+                                      child: Image.memory(
+                                        _newImageBytesList[index],
+                                        height: 72,
+                                        width: 72,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
-                                  ),
-                                  Positioned(
-                                    top: 2,
-                                    right: 2,
-                                    child: GestureDetector(
-                                      onTap: () => _removeImage(index),
-                                      child: const CircleAvatar(
-                                        radius: 10,
-                                        backgroundColor: Colors.black54,
-                                        child: Icon(
-                                          Icons.close,
-                                          size: 12,
-                                          color: Colors.white,
+                                    Positioned(
+                                      top: 2,
+                                      right: 2,
+                                      child: GestureDetector(
+                                        onTap: () => _removeImage(index),
+                                        child: CircleAvatar(
+                                          radius: 10,
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .inverseSurface
+                                              .withValues(alpha: 0.7),
+                                          child: Icon(
+                                            Icons.close,
+                                            size: 12,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onInverseSurface,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.image),
+                            onPressed: _pickImages,
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: _commentController,
+                              maxLines: null,
+                              decoration: const InputDecoration(
+                                hintText: 'Write a comment...',
+                                border: InputBorder.none,
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.image),
-                          onPressed: _pickImages,
-                        ),
-                        Expanded(
-                          child: TextField(
-                            controller: _commentController,
-                            maxLines: null,
-                            decoration: const InputDecoration(
-                              hintText: 'Write a comment...',
-                              border: InputBorder.none,
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.send,
-                            color: Colors.lightGreen,
+                          IconButton(
+                            icon: const Icon(
+                              Icons.send,
+                              color: Colors.lightGreen,
+                            ),
+                            onPressed: commentProvider.isLoading
+                                ? null
+                                : _submitComment,
                           ),
-                          onPressed: commentProvider.isLoading
-                              ? null
-                              : _submitComment,
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -528,12 +549,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         children: [
           CircleAvatar(
             radius: 16,
-            backgroundColor: Colors.grey[300],
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
             backgroundImage: hasAvatar
                 ? NetworkImage(comment.author!.avatarUrl!)
                 : null,
             child: !hasAvatar
-                ? const Icon(Icons.person, size: 16, color: Colors.grey)
+                ? Icon(
+                    Icons.person,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  )
                 : null,
           ),
           const SizedBox(width: 12),
@@ -580,7 +607,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 ),
                 Text(
                   displayDate,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 if (comment.content.isNotEmpty)
@@ -597,7 +627,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           return Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
+                              borderRadius: AppTheme.defaultBorderRadius,
                               child: Image.network(
                                 comment.imageUrls[index],
                                 width: 150,

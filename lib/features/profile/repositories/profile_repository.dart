@@ -26,7 +26,7 @@ class ProfileRepository {
   ) async {
     String? avatarUrl;
 
-    if (imageBytes != null && fileName != null) {
+    if (imageBytes != null && imageBytes.isNotEmpty && fileName != null) {
       // Extract extension
       final ext = fileName.contains('.') ? fileName.split('.').last : 'jpg';
       final storageFileName =
@@ -41,10 +41,10 @@ class ProfileRepository {
 
     final data = await _client
         .from('profiles')
-        .insert({
+        .upsert({
           'id': userId,
           'display_name': displayName,
-          'avatar_url': ?avatarUrl,
+          'avatar_url': avatarUrl,
         })
         .select()
         .single();
@@ -87,7 +87,7 @@ class ProfileRepository {
     // Update database row
     final data = await _client
         .from('profiles')
-        .update({'display_name': displayName, 'avatar_url': ?avatarUrl})
+        .update({'display_name': displayName, 'avatar_url': avatarUrl})
         .eq('id', userId)
         .select()
         .single();

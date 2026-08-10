@@ -96,7 +96,8 @@ class ProfileProvider extends ChangeNotifier {
       );
       notifyListeners();
     } catch (e) {
-      _setError('Failed to create profile');
+      debugPrint('PROFILE CREATION ERROR: $e');
+      _setError('Failed to create profile: $e');
     } finally {
       _stopLoading();
     }

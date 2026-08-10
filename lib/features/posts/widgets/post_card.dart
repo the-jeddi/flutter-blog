@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/core/theme/app_theme.dart';
 import 'package:flutter_blog/features/auth/providers/auth_provider.dart';
 import 'package:flutter_blog/features/posts/models/post_model.dart';
 import 'package:flutter_blog/features/posts/providers/post_provider.dart';
@@ -19,8 +20,6 @@ class PostCard extends StatelessWidget {
           ? null
           : () => context.push('/post/{post.id}', extra: post),
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -53,11 +52,16 @@ class PostCard extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: CircleAvatar(
-        backgroundColor: Colors.grey[300],
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         backgroundImage: hasAvatar
             ? NetworkImage(post.author!.avatarUrl!)
             : null,
-        child: !hasAvatar ? const Icon(Icons.person, color: Colors.grey) : null,
+        child: !hasAvatar
+            ? Icon(
+                Icons.person,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              )
+            : null,
       ),
       title: Text(
         post.author?.displayName ?? 'Unknown User',
@@ -79,9 +83,14 @@ class PostCard extends StatelessWidget {
               },
               itemBuilder: (context) => [
                 const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
-                  child: Text('Delete', style: TextStyle(color: Colors.red)),
+                  child: Text(
+                    'Delete',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ),
               ],
             )
@@ -182,7 +191,7 @@ class PostCard extends StatelessWidget {
               bottom: 16.0,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: AppTheme.defaultBorderRadius,
               child: Image.network(
                 post.imageUrls[index],
                 width: 300,

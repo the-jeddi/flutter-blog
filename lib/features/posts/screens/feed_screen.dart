@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/core/widgets/responsive_app_bar.dart';
+import 'package:flutter_blog/core/widgets/responsive_constrained_box.dart';
 import 'package:flutter_blog/features/posts/providers/post_provider.dart';
 import 'package:flutter_blog/features/posts/widgets/post_card.dart';
 import 'package:go_router/go_router.dart';
@@ -44,70 +46,63 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('The Daily Bits'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            tooltip: 'Profile',
-            onPressed: () => context.push('/profile'),
-          ),
-        ],
-      ),
+      appBar: ResponsiveAppBar(title: const Text('The Daily Bits')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/create-post'),
         child: const Icon(Icons.add),
       ),
-      body: Consumer<PostProvider>(
-        builder: (context, provider, child) {
-          // Initial load
-          if (provider.isLoadingInitial && provider.posts.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: ResponsiveConstrainedBox(
+        child: Consumer<PostProvider>(
+          builder: (context, provider, child) {
+            // Initial load
+            if (provider.isLoadingInitial && provider.posts.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          // No posts found
-          if (!provider.isLoadingInitial && provider.posts.isEmpty) {
+            // No posts found
+            if (!provider.isLoadingInitial && provider.posts.isEmpty) {
+              return RefreshIndicator(
+                onRefresh: () => provider.loadInitialPosts(),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    const SizedBox(height: 150),
+                    Center(
+                      child: Text(
+                        'No posts yet. Be the first to share!',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Feed list
             return RefreshIndicator(
               onRefresh: () => provider.loadInitialPosts(),
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const SizedBox(height: 150),
-                  Center(
-                    child: Text(
-                      'No posts yet. Be the first to share!',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ),
-                ],
+              child: ListView.builder(
+                controller: _scrollController,
+                physics: AlwaysScrollableScrollPhysics(),
+                itemCount:
+                    provider.posts.length + (provider.isLoadingMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  // Render bottom loading spinner
+                  if (index == provider.posts.length) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  // Render post card
+                  final post = provider.posts[index];
+                  return PostCard(post: post);
+                },
               ),
             );
-          }
-
-          // Feed list
-          return RefreshIndicator(
-            onRefresh: () => provider.loadInitialPosts(),
-            child: ListView.builder(
-              controller: _scrollController,
-              physics: AlwaysScrollableScrollPhysics(),
-              itemCount:
-                  provider.posts.length + (provider.isLoadingMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                // Render bottom loading spinner
-                if (index == provider.posts.length) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-
-                // Render post card
-                final post = provider.posts[index];
-                return PostCard(post: post);
-              },
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }

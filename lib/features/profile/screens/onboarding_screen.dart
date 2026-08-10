@@ -93,7 +93,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: CircleAvatar(
                     radius: 60,
                     backgroundColor: Colors.grey[300],
-                    // MemoryImage reads directly from our Uint8List
                     backgroundImage: _avatarBytes != null
                         ? MemoryImage(_avatarBytes!)
                         : null,
@@ -126,7 +125,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Consumer<ProfileProvider>(
                   builder: (context, provider, child) {
                     return SizedBox(
-                      width: double.infinity, // Make button stretch full width
+                      width: double.infinity,
                       child: ElevatedButton(
                         onPressed: provider.isLoading
                             ? null
