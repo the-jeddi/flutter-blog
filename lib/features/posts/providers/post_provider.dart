@@ -124,6 +124,7 @@ class PostProvider extends ChangeNotifier {
 
       // Refresh feed to show new post
       await loadInitialPosts();
+      await loadUserPosts(authorId);
     } catch (e) {
       _errorMessage = 'Failed to create post. Please try again';
       _isLoadingInitial = false;
@@ -136,6 +137,7 @@ class PostProvider extends ChangeNotifier {
       await _postRepo.deletePost(postId, imageUrls);
 
       _posts.removeWhere((post) => post.id == postId);
+      _userPosts.removeWhere((post) => post.id == postId);
       notifyListeners();
 
       return true;
@@ -175,6 +177,11 @@ class PostProvider extends ChangeNotifier {
       final index = _posts.indexWhere((p) => p.id == postId);
       if (index != -1) {
         _posts[index] = updatedPost;
+      }
+
+      final userIndex = _userPosts.indexWhere((p) => p.id == postId);
+      if (userIndex != -1) {
+        _userPosts[userIndex] = updatedPost;
       }
 
       return true;
