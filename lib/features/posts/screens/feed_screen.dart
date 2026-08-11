@@ -10,6 +10,8 @@ import 'package:provider/provider.dart';
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
 
+  static final globalKey = GlobalKey<_FeedScreenState>();
+
   @override
   State<FeedScreen> createState() => _FeedScreenState();
 }
@@ -41,6 +43,18 @@ class _FeedScreenState extends State<FeedScreen> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       context.read<PostProvider>().loadMorePosts();
+    }
+  }
+
+  void scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+
+      context.read<PostProvider>().loadInitialPosts();
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/core/providers/theme_provider.dart';
 import 'package:flutter_blog/features/auth/providers/auth_provider.dart';
+import 'package:flutter_blog/features/posts/screens/feed_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -11,6 +12,12 @@ class ResponsiveShell extends StatelessWidget {
 
   // Switch branches
   void _goBranch(int index) {
+    if (index == navigationShell.currentIndex) {
+      if (index == 0) {
+        FeedScreen.globalKey.currentState?.scrollToTop();
+      }
+    }
+
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,

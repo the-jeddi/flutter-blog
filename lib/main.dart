@@ -182,7 +182,8 @@ class _BlogAppState extends State<BlogApp> {
               routes: [
                 GoRoute(
                   path: '/feed',
-                  builder: (context, state) => const FeedScreen(),
+                  builder: (context, state) =>
+                      FeedScreen(key: FeedScreen.globalKey),
                 ),
               ],
             ),
