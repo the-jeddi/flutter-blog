@@ -64,20 +64,27 @@ class _BlogAppState extends State<BlogApp> {
     final profileProvider = context.read<ProfileProvider>();
 
     _router = GoRouter(
-      initialLocation: '/login',
+      initialLocation: '/feed',
       refreshListenable: Listenable.merge([authProvider, profileProvider]),
       redirect: (context, state) {
         final isLoggedIn = authProvider.isAuthenticated;
         final isProfileSetup = profileProvider.isProfileSetup;
         final isProfileLoading = profileProvider.isLoading;
 
-        final location = state.matchedLocation;
+        final location = state.uri.path;
         final isAuthRoute = location == '/login' || location == '/register';
         final isOnboardingRoute = location == '/onboarding';
 
+        // Define public routes
+        final isPublicRoute =
+            location == '/feed' ||
+            location == '/' ||
+            location.startsWith('/post/');
+
         // 1. Unauthenticated users trying to access protected routes
         if (!isLoggedIn) {
-          return isAuthRoute ? null : '/login';
+          if (isPublicRoute || isAuthRoute) return null;
+          return '/login';
         }
 
         // 2. Prevent premature redirects while fetching the profile

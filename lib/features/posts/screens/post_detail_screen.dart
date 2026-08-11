@@ -10,6 +10,7 @@ import 'package:flutter_blog/features/comments/providers/comment_provider.dart';
 import 'package:flutter_blog/features/posts/models/post_model.dart';
 import 'package:flutter_blog/features/posts/providers/post_provider.dart';
 import 'package:flutter_blog/features/posts/widgets/post_card.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -350,6 +351,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   Widget build(BuildContext context) {
     final commentProvider = context.watch<CommentProvider>();
     final currentUserId = context.read<AuthProvider>().currentUser?.id;
+    final isAuthenticated = context.read<AuthProvider>().isAuthenticated;
 
     // Sync edit of posts in Post Detail Screen
     final postProvider = context.watch<PostProvider>();
@@ -417,106 +419,128 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             ),
 
             // Sticky Bottom Input Area
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    offset: const Offset(0, -2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_newImageBytesList.isNotEmpty)
-                        SizedBox(
-                          height: 80,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _newImageBytesList.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(
-                                  right: 8.0,
-                                  bottom: 8.0,
-                                ),
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius:
-                                          AppTheme.defaultBorderRadius,
-                                      child: Image.memory(
-                                        _newImageBytesList[index],
-                                        height: 72,
-                                        width: 72,
-                                        fit: BoxFit.cover,
+            if (isAuthenticated)
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      offset: const Offset(0, -2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_newImageBytesList.isNotEmpty)
+                          SizedBox(
+                            height: 80,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _newImageBytesList.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(
+                                    right: 8.0,
+                                    bottom: 8.0,
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius:
+                                            AppTheme.defaultBorderRadius,
+                                        child: Image.memory(
+                                          _newImageBytesList[index],
+                                          height: 72,
+                                          width: 72,
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
-                                    ),
-                                    Positioned(
-                                      top: 2,
-                                      right: 2,
-                                      child: GestureDetector(
-                                        onTap: () => _removeImage(index),
-                                        child: CircleAvatar(
-                                          radius: 10,
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .inverseSurface
-                                              .withValues(alpha: 0.7),
-                                          child: Icon(
-                                            Icons.close,
-                                            size: 12,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onInverseSurface,
+                                      Positioned(
+                                        top: 2,
+                                        right: 2,
+                                        child: GestureDetector(
+                                          onTap: () => _removeImage(index),
+                                          child: CircleAvatar(
+                                            radius: 10,
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .inverseSurface
+                                                .withValues(alpha: 0.7),
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 12,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onInverseSurface,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.image),
+                              onPressed: _pickImages,
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: _commentController,
+                                maxLines: null,
+                                decoration: const InputDecoration(
+                                  hintText: 'Write a comment...',
+                                  border: InputBorder.none,
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.image),
-                            onPressed: _pickImages,
-                          ),
-                          Expanded(
-                            child: TextField(
-                              controller: _commentController,
-                              maxLines: null,
-                              decoration: const InputDecoration(
-                                hintText: 'Write a comment...',
-                                border: InputBorder.none,
                               ),
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.send,
-                              color: Colors.lightGreen,
+                            IconButton(
+                              icon: const Icon(
+                                Icons.send,
+                                color: Colors.lightGreen,
+                              ),
+                              onPressed: commentProvider.isLoading
+                                  ? null
+                                  : _submitComment,
                             ),
-                            onPressed: commentProvider.isLoading
-                                ? null
-                                : _submitComment,
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      offset: const Offset(0, -2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: ElevatedButton(
+                    onPressed: () => context.push('/login'),
+                    child: const Text('Log in to comment'),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

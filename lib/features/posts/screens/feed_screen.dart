@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/core/widgets/responsive_app_bar.dart';
 import 'package:flutter_blog/core/widgets/responsive_constrained_box.dart';
+import 'package:flutter_blog/features/auth/providers/auth_provider.dart';
 import 'package:flutter_blog/features/posts/providers/post_provider.dart';
 import 'package:flutter_blog/features/posts/widgets/post_card.dart';
 import 'package:go_router/go_router.dart';
@@ -45,12 +46,16 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAuthenticated = context.watch<AuthProvider>().isAuthenticated;
+
     return Scaffold(
       appBar: ResponsiveAppBar(title: const Text('The Daily Bits')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/create-post'),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: isAuthenticated
+          ? FloatingActionButton(
+              onPressed: () => context.push('/create-post'),
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: ResponsiveConstrainedBox(
         child: Consumer<PostProvider>(
           builder: (context, provider, child) {
