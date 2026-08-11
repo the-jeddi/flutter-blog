@@ -18,7 +18,7 @@ class PostCard extends StatelessWidget {
     return GestureDetector(
       onTap: isDetailView
           ? null
-          : () => context.push('/post/{post.id}', extra: post),
+          : () => context.push('/post/{$post.id}', extra: post),
       child: Card(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +78,7 @@ class PostCard extends StatelessWidget {
                 if (value == 'delete') {
                   _showDeleteDialog(context);
                 } else if (value == 'edit') {
-                  context.push('/create-post', extra: post);
+                  context.push('/create-post?id=${post.id}', extra: post);
                 }
               },
               itemBuilder: (context) => [
@@ -156,6 +156,8 @@ class PostCard extends StatelessWidget {
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(height: 1.4),
+            maxLines: isDetailView ? null : 4,
+            overflow: isDetailView ? null : TextOverflow.ellipsis,
           ),
         ],
       ),

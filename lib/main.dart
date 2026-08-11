@@ -121,14 +121,53 @@ class _BlogAppState extends State<BlogApp> {
         GoRoute(
           path: '/create-post',
           builder: (context, state) {
-            final post = state.extra as Post?;
+            Post? post = state.extra as Post?;
+
+            // WEB SWIPE-BACK FALLBACK
+            if (post == null && state.uri.queryParameters.containsKey('id')) {
+              if (post == null && state.uri.queryParameters.containsKey('id')) {
+                final postId = state.uri.queryParameters['id'];
+                final postProvider = context.read<PostProvider>();
+
+                // Search both feeds for the missing post
+                final allPosts = [
+                  ...postProvider.posts,
+                  ...postProvider.userPosts,
+                ];
+                final index = allPosts.indexWhere((p) => p.id == postId);
+                if (index != -1) post = allPosts[index];
+              }
+            }
+
             return CreatePostScreen(existingPost: post);
           },
         ),
         GoRoute(
           path: '/post/:id',
           builder: (context, state) {
-            final post = state.extra as Post;
+            Post? post = state.extra as Post?;
+
+            // WEB SWIPE-BACK FALLBACK
+            if (post == null) {
+              final postId = state.pathParameters['id'];
+              final postProvider = context.read<PostProvider>();
+              final allPosts = [
+                ...postProvider.posts,
+                ...postProvider.userPosts,
+              ];
+              final index = allPosts.indexWhere((p) => p.id == postId);
+              if (index != -1) post = allPosts[index];
+            }
+
+            // Failsafe if post was deleted or missing
+            if (post == null) {
+              return const Scaffold(
+                body: Center(
+                  child: Text('Post not found. Please return to the feed.'),
+                ),
+              );
+            }
+
             return PostDetailScreen(post: post);
           },
         ),
