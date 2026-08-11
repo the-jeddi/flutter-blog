@@ -2,6 +2,8 @@
 
 A simple Blog application using Flutter
 
+🚀 **[View Live Demo](https://the-jeddi.github.io/the-daily-bits/)**
+
 ## Tech stack used
 - Provider - State Management
 - go_router - Routing
